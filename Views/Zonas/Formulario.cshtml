@@ -1,0 +1,35 @@
+@model ZonaFormVm
+@{
+    bool edita = Model.Id.HasValue;
+    ViewData["Title"] = edita ? "Editar zona" : "Nueva zona";
+}
+<div class="cabecera"><h1>@ViewData["Title"]</h1></div>
+<form id="formZona" asp-action="@(edita ? "Editar" : "Crear")" asp-route-id="@Model.Id" method="post" novalidate
+      data-almacen-lat="@ViewBag.AlmacenLat" data-almacen-lng="@ViewBag.AlmacenLng">
+    <div asp-validation-summary="All" class="aviso aviso-error"></div>
+    <div class="dos-col">
+        <div class="tarjeta formulario">
+            <label asp-for="Nombre"></label>
+            <input asp-for="Nombre" />
+            <span asp-validation-for="Nombre" class="error-campo"></span>
+            <label asp-for="Descripcion"></label>
+            <input asp-for="Descripcion" />
+            <label asp-for="Color"></label>
+            <input asp-for="Color" type="color" />
+            <label class="check"><input type="checkbox" asp-for="Activa" /> Zona activa</label>
+            <input type="hidden" asp-for="Vertices" id="vertices" />
+            <span asp-validation-for="Vertices" class="error-campo"></span>
+            <div class="acciones-mapa">
+                <button type="button" class="btn btn-linea btn-peq" id="btnDeshacer">Deshacer último punto</button>
+                <button type="button" class="btn btn-linea btn-peq" id="btnLimpiar">Borrar polígono</button>
+            </div>
+            <p class="nota">Haga clic en el mapa para marcar los vértices (mínimo 3). Arrastre un vértice para moverlo.</p>
+        </div>
+        <div class="tarjeta"><div id="mapaZona" class="mapa mapa-alto"></div></div>
+    </div>
+    <div class="barra-acciones">
+        <a class="btn btn-linea" asp-action="Index">Cancelar</a>
+        <button type="submit" class="btn btn-primario">Guardar zona</button>
+    </div>
+</form>
+@section Scripts { <script src="~/js/zonas.js" asp-append-version="true"></script> }

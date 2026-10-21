@@ -1,0 +1,85 @@
+@model PedidoListaVm
+@{
+    ViewData["Title"] = "Pedidos";
+    var f = Model.Filtro;
+    int total = Model.Conteos.Values.Sum();
+    (int? Id, string Nombre)[] pestanas =
+    {
+        (null, "Todos"), (1, "Pendientes"), (2, "En preparación"), (3, "En ruta"), (4, "Entregados"), (5, "Fallidos")
+    };
+}
+<div class="cabecera">
+    <div><h1>Pedidos</h1><p class="sub">@Model.Total resultado(s)</p></div>
+    <div class="acciones">
+        <form asp-action="AutoDistribuir" method="post" onsubmit="return confirm('¿Distribuir automáticamente los pedidos pendientes?');">
+            <button class="btn btn-linea" type="submit">Distribuir pendientes</button>
+        </form>
+        <a class="btn btn-primario" asp-action="Crear">+ Nuevo pedido</a>
+    </div>
+</div>
+
+<nav class="pestanas">
+    @foreach (var t in pestanas)
+    {
+        int n = t.Id.HasValue ? (Model.Conteos.TryGetValue(t.Id.Value, out var c) ? c : 0) : total;
+        <a class="@(f.EstadoId == t.Id ? "activa" : "")" asp-action="Index"
+           asp-route-EstadoId="@t.Id" asp-route-Texto="@f.Texto" asp-route-ZonaId="@f.ZonaId"
+           asp-route-Desde="@f.Desde?.ToString("yyyy-MM-dd")" asp-route-Hasta="@f.Hasta?.ToString("yyyy-MM-dd")">@t.Nombre <span class="cuenta">@n</span></a>
+    }
+</nav>
+
+<form class="filtros" method="get" asp-action="Index">
+    <input type="hidden" name="EstadoId" value="@f.EstadoId" />
+    <input type="search" name="Texto" value="@f.Texto" placeholder="Buscar por código, cliente o dirección" />
+    <select name="ZonaId">
+        <option value="">Todas las zonas</option>
+        @foreach (var z in Model.Zonas)
+        {
+            <option value="@z.Value" selected="@(z.Value == f.ZonaId?.ToString())">@z.Text</option>
+        }
+    </select>
+    <input type="date" name="Desde" value="@f.Desde?.ToString("yyyy-MM-dd")" title="Desde" />
+    <input type="date" name="Hasta" value="@f.Hasta?.ToString("yyyy-MM-dd")" title="Hasta" />
+    <button class="btn btn-linea" type="submit">Filtrar</button>
+    <a class="enlace-suave" asp-action="Index">Limpiar</a>
+</form>
+
+<div class="tarjeta">
+    <div class="tabla-resp">
+    <table class="tabla">
+        <thead><tr><th>Código</th><th>Cliente</th><th>Dirección</th><th>Zona</th><th>Estado</th><th>Repartidor</th><th>Registro</th></tr></thead>
+        <tbody>
+        @foreach (var p in Model.Items)
+        {
+            <tr>
+                <td><a asp-action="Detalle" asp-route-id="@p.Id"><strong>@p.Codigo</strong></a></td>
+                <td>@p.Cliente</td>
+                <td>@p.Direccion</td>
+                <td>@(p.Zona ?? "—")</td>
+                <td><span class="etiqueta @Vista.ClaseEstado(p.EstadoId)">@p.Estado</span></td>
+                <td>@(p.Repartidor ?? "—")</td>
+                <td>@p.FechaRegistro.Fmt()</td>
+            </tr>
+        }
+        @if (!Model.Items.Any())
+        {
+            <tr><td colspan="7" class="vacio">No se encontraron pedidos con esos filtros.</td></tr>
+        }
+        </tbody>
+    </table>
+    </div>
+    @if (Model.TotalPaginas > 1)
+    {
+        <div class="paginacion">
+            @if (Model.Pagina > 1)
+            {
+                <a asp-action="Index" asp-route-Pagina="@(Model.Pagina - 1)" asp-route-EstadoId="@f.EstadoId" asp-route-Texto="@f.Texto" asp-route-ZonaId="@f.ZonaId" asp-route-Desde="@f.Desde?.ToString("yyyy-MM-dd")" asp-route-Hasta="@f.Hasta?.ToString("yyyy-MM-dd")">‹ Anterior</a>
+            }
+            <span>Página @Model.Pagina de @Model.TotalPaginas</span>
+            @if (Model.Pagina < Model.TotalPaginas)
+            {
+                <a asp-action="Index" asp-route-Pagina="@(Model.Pagina + 1)" asp-route-EstadoId="@f.EstadoId" asp-route-Texto="@f.Texto" asp-route-ZonaId="@f.ZonaId" asp-route-Desde="@f.Desde?.ToString("yyyy-MM-dd")" asp-route-Hasta="@f.Hasta?.ToString("yyyy-MM-dd")">Siguiente ›</a>
+            }
+        </div>
+    }
+</div>

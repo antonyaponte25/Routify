@@ -1,0 +1,26 @@
+@{
+    ViewData["Title"] = "Seguimiento de pedido";
+    Layout = "_LayoutPublico";
+}
+<div class="seg" id="seg" data-token="@ViewBag.Token">
+    <header class="seg-cab"><span class="marca-logo">R</span> <span id="segComercio">Routify</span></header>
+    <div id="segNoVigente" class="tarjeta-centro" hidden>
+        <h1>Enlace no disponible</h1>
+        <p>Este enlace de seguimiento no existe o ya venció. Si tiene dudas sobre su pedido, comuníquese con el comercio.</p>
+    </div>
+    <div id="segContenido" hidden>
+        <section class="seg-estado">
+            <p class="suave" id="segSaludo"></p>
+            <h1 id="segTitulo">Pedido</h1>
+            <p id="segEta" class="seg-eta"></p>
+            <p id="segDetalle" class="suave"></p>
+        </section>
+        <ol class="seg-pasos" id="segPasos">
+            <li data-e="1">Recibido</li><li data-e="2">En preparación</li><li data-e="3">En camino</li><li data-e="4">Entregado</li>
+        </ol>
+        <div id="mapaSeg" class="mapa mapa-medio"></div>
+        <p class="nota" id="segActualizado"></p>
+        <ul class="seg-historial" id="segHistorial"></ul>
+    </div>
+</div>
+@section Scripts { <script src="~/js/seguimiento.js" asp-append-version="true"></script> }

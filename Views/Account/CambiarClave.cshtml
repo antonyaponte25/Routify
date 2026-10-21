@@ -1,0 +1,19 @@
+@model CambiarClaveVm
+@{
+    ViewData["Title"] = "Cambiar contraseña";
+}
+<div class="cabecera"><h1>Cambiar contraseña</h1></div>
+<form class="tarjeta formulario estrecho" asp-action="CambiarClave" method="post" novalidate>
+    <div asp-validation-summary="ModelOnly" class="aviso aviso-error"></div>
+    <label asp-for="ClaveActual"></label>
+    <input asp-for="ClaveActual" autocomplete="current-password" />
+    <span asp-validation-for="ClaveActual" class="error-campo"></span>
+    <label asp-for="NuevaClave"></label>
+    <input asp-for="NuevaClave" autocomplete="new-password" />
+    <span asp-validation-for="NuevaClave" class="error-campo"></span>
+    <label asp-for="Confirmar"></label>
+    <input asp-for="Confirmar" autocomplete="new-password" />
+    <span asp-validation-for="Confirmar" class="error-campo"></span>
+    <p class="nota">Mínimo de caracteres y complejidad según la política de seguridad configurada.</p>
+    <button type="submit" class="btn btn-primario">Actualizar contraseña</button>
+</form>

@@ -1,0 +1,48 @@
+@model RutaDetalleVm
+@{
+    var r = Model.Ruta;
+    ViewData["Title"] = "Ruta #" + r.Id;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    bool abierta = r.Estado == EstadoRuta.Planificada || r.Estado == EstadoRuta.Activa;
+}
+<div class="cabecera">
+    <div>
+        <h1>Ruta #@r.Id · @Model.RepartidorNombre <span class="etiqueta @Vista.ClaseRuta(r.Estado)">@r.Estado</span></h1>
+        <p class="sub">@r.Fecha.ToString("dd/MM/yyyy") · @(r.DistanciaTotal.HasValue ? r.DistanciaTotal.Value.ToString("0.0") + " km" : "—") · @(r.TiempoEstimado.HasValue ? r.TiempoEstimado + " min estimados" : "")</p>
+    </div>
+    <div class="acciones">
+        <a class="btn btn-linea" asp-action="Index" asp-route-fecha="@r.Fecha.ToString("yyyy-MM-dd")">Volver</a>
+        @if (abierta)
+        {
+            <form asp-action="Reoptimizar" asp-route-id="@r.Id" method="post"><button class="btn btn-primario" type="submit">Reoptimizar</button></form>
+            <form asp-action="Cancelar" asp-route-id="@r.Id" method="post"
+                  onsubmit="return confirm('¿Cancelar la ruta? Los pedidos pendientes volverán a estar sin asignar.');">
+                <button class="btn btn-linea" type="submit">Cancelar ruta</button></form>
+        }
+    </div>
+</div>
+
+<div class="dos-col">
+    <div class="tarjeta"><div id="mapaRuta" class="mapa mapa-alto"
+         data-almacen-lat="@Model.AlmacenLat.ToString(inv)" data-almacen-lng="@Model.AlmacenLng.ToString(inv)" data-almacen="@Model.AlmacenNombre"></div>
+         <p class="nota" id="notaRuta">Trazado por calles mediante OSRM; si no está disponible se muestran líneas rectas.</p></div>
+    <div class="tarjeta">
+        <h2>Paradas</h2>
+        <table class="tabla" id="tablaParadas">
+            <thead><tr><th>#</th><th>Pedido</th><th>ETA</th><th>Estado</th></tr></thead>
+            <tbody>
+            @foreach (var p in Model.Paradas)
+            {
+                <tr data-lat="@p.Ubicacion.Y.ToString(inv)" data-lng="@p.Ubicacion.X.ToString(inv)" data-orden="@p.Orden" data-codigo="@p.Pedido.Codigo">
+                    <td>@p.Orden</td>
+                    <td><a asp-controller="Pedidos" asp-action="Detalle" asp-route-id="@p.PedidoId">@p.Pedido.Codigo</a><br />
+                        <small class="suave">@p.Pedido.Cliente.Nombre · @p.Pedido.DireccionEntrega</small></td>
+                    <td>@p.Eta.Hora()</td>
+                    <td><span class="etiqueta @Vista.ClaseParada(p.Estado)">@p.Estado</span></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+@section Scripts { <script src="~/js/ruta-mapa.js" asp-append-version="true"></script> }

@@ -1,0 +1,48 @@
+@model ClienteFormVm
+@{
+    bool edita = Model.Id.HasValue;
+    ViewData["Title"] = edita ? "Editar cliente" : "Nuevo cliente";
+}
+<div class="cabecera"><h1>@ViewData["Title"]</h1></div>
+<form id="formPedido" asp-action="@(edita ? "Editar" : "Crear")" asp-route-id="@Model.Id" method="post" novalidate
+      data-almacen-lat="@ViewBag.AlmacenLat" data-almacen-lng="@ViewBag.AlmacenLng">
+    <div asp-validation-summary="All" class="aviso aviso-error"></div>
+    <div class="dos-col">
+        <div class="tarjeta formulario">
+            <label asp-for="Nombre"></label>
+            <input asp-for="Nombre" />
+            <span asp-validation-for="Nombre" class="error-campo"></span>
+            <div class="fila-2">
+                <div><label asp-for="Telefono"></label><input asp-for="Telefono" inputmode="tel" /></div>
+                <div><label asp-for="Correo"></label><input asp-for="Correo" type="email" /><span asp-validation-for="Correo" class="error-campo"></span></div>
+            </div>
+            <label asp-for="Direccion">Dirección</label>
+            <div class="con-boton">
+                <input asp-for="Direccion" id="direccion" autocomplete="off" />
+                <button type="button" class="btn btn-linea" id="btnBuscar">Buscar en el mapa</button>
+            </div>
+            <span asp-validation-for="Direccion" class="error-campo"></span>
+            <ul id="resultadosGeo" class="resultados-geo" hidden></ul>
+            <label asp-for="Referencia"></label>
+            <input asp-for="Referencia" />
+            <input type="hidden" asp-for="Lat" id="lat" />
+            <input type="hidden" asp-for="Lng" id="lng" />
+            <fieldset class="canales">
+                <legend>Notificaciones</legend>
+                <label class="check"><input type="checkbox" asp-for="NotificarCorreo" /> Por correo</label>
+                <label class="check"><input type="checkbox" asp-for="NotificarWhatsapp" /> Por WhatsApp</label>
+                <label class="check"><input type="checkbox" asp-for="Consentimiento" /> El cliente autoriza el tratamiento de sus datos para notificarle sobre sus pedidos (Ley N.° 29733)</label>
+            </fieldset>
+        </div>
+        <div class="tarjeta">
+            <div class="tarjeta-cab"><h2>Ubicación</h2><span id="estadoPunto" class="nota"></span></div>
+            <div id="mapaPedido" class="mapa mapa-medio"></div>
+            <p class="nota">Arrastre el marcador para fijar el punto exacto.</p>
+        </div>
+    </div>
+    <div class="barra-acciones">
+        <a class="btn btn-linea" asp-action="Index">Cancelar</a>
+        <button type="submit" class="btn btn-primario">Guardar</button>
+    </div>
+</form>
+@section Scripts { <script src="~/js/pedido-form.js" asp-append-version="true"></script> }

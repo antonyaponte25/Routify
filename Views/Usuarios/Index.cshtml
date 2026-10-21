@@ -1,0 +1,45 @@
+@model UsuarioListaVm
+@{
+    ViewData["Title"] = "Usuarios";
+    var roles = new Dictionary<int, string> { [1] = "Administrador", [2] = "Operador", [3] = "Repartidor" };
+}
+<div class="cabecera">
+    <div><h1>Usuarios</h1><p class="sub">@Model.Total usuario(s)</p></div>
+    <div class="acciones"><a class="btn btn-primario" asp-action="Crear">+ Nuevo usuario</a></div>
+</div>
+<form class="filtros" method="get">
+    <input type="search" name="texto" value="@Model.Texto" placeholder="Buscar por nombre o correo" />
+    <select name="rolId">
+        <option value="">Todos los roles</option>
+        @foreach (var r in roles)
+        {
+            <option value="@r.Key" selected="@(Model.RolId == r.Key)">@r.Value (@(Model.ConteoPorRol.TryGetValue(r.Key, out var n) ? n : 0))</option>
+        }
+    </select>
+    <button class="btn btn-linea" type="submit">Filtrar</button>
+</form>
+<div class="tarjeta">
+    <div class="tabla-resp">
+    <table class="tabla">
+        <thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th>Último acceso</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var u in Model.Usuarios)
+        {
+            <tr>
+                <td><strong>@u.NombreCompleto</strong></td>
+                <td>@u.Correo</td>
+                <td>@u.Rol.Nombre</td>
+                <td><span class="etiqueta @(u.EstaActivo ? "e-ok" : "e-pendiente")">@u.Estado</span></td>
+                <td>@(u.UltimoAcceso.HasValue ? u.UltimoAcceso.Fmt() : "—")</td>
+                <td class="der">
+                    <a class="btn btn-linea btn-peq" asp-action="Editar" asp-route-id="@u.Id">Editar</a>
+                    <form class="en-linea" asp-action="CambiarEstado" asp-route-id="@u.Id" method="post">
+                        <button class="btn btn-linea btn-peq" type="submit">@(u.EstaActivo ? "Desactivar" : "Activar")</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    </div>
+</div>

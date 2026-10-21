@@ -1,0 +1,114 @@
+@model PedidoFormVm
+@{
+    bool edita = Model.Id.HasValue;
+    ViewData["Title"] = edita ? "Editar pedido " + Model.Codigo : "Nuevo pedido";
+}
+<div class="cabecera">
+    <div><h1>@ViewData["Title"]</h1><p class="sub">Registre el cliente, la dirección (con punto en el mapa) y el detalle del pedido.</p></div>
+</div>
+
+<form id="formPedido" asp-action="@(edita ? "Editar" : "Crear")" asp-route-id="@Model.Id" method="post" novalidate
+      data-almacen-lat="@ViewBag.AlmacenLat" data-almacen-lng="@ViewBag.AlmacenLng">
+    <div asp-validation-summary="All" class="aviso aviso-error"></div>
+
+    <div class="dos-col">
+        <div class="tarjeta formulario">
+            <h2>Cliente</h2>
+            @if (!edita)
+            {
+                <div class="conmutador">
+                    <label><input type="radio" asp-for="ModoCliente" value="existente" /> Cliente existente</label>
+                    <label><input type="radio" asp-for="ModoCliente" value="nuevo" /> Cliente nuevo</label>
+                </div>
+            }
+            else
+            {
+                <input type="hidden" asp-for="ModoCliente" />
+            }
+
+            <div id="bloqueExistente">
+                <label asp-for="ClienteId">Cliente</label>
+                <select asp-for="ClienteId" asp-items="Model.Clientes" id="selCliente" disabled="@edita">
+                    <option value="">— Seleccione —</option>
+                </select>
+                @if (edita) { <input type="hidden" asp-for="ClienteId" /> }
+                <span asp-validation-for="ClienteId" class="error-campo"></span>
+            </div>
+
+            <div id="bloqueNuevo" hidden>
+                <label asp-for="NuevoNombre">Nombre completo</label>
+                <input asp-for="NuevoNombre" />
+                <span asp-validation-for="NuevoNombre" class="error-campo"></span>
+                <div class="fila-2">
+                    <div><label asp-for="NuevoTelefono">Teléfono / WhatsApp</label><input asp-for="NuevoTelefono" inputmode="tel" placeholder="987654321" />
+                        <span asp-validation-for="NuevoTelefono" class="error-campo"></span></div>
+                    <div><label asp-for="NuevoCorreo">Correo</label><input asp-for="NuevoCorreo" type="email" />
+                        <span asp-validation-for="NuevoCorreo" class="error-campo"></span></div>
+                </div>
+                <fieldset class="canales">
+                    <legend>Notificaciones al cliente</legend>
+                    <label class="check"><input type="checkbox" asp-for="NuevoNotificarCorreo" /> Por correo</label>
+                    <label class="check"><input type="checkbox" asp-for="NuevoNotificarWhatsapp" /> Por WhatsApp</label>
+                    <label class="check"><input type="checkbox" asp-for="NuevoConsentimiento" /> El cliente autoriza el tratamiento de sus datos para notificarle sobre su pedido (Ley N.° 29733)</label>
+                </fieldset>
+            </div>
+
+            <h2>Entrega</h2>
+            <label asp-for="DireccionEntrega"></label>
+            <div class="con-boton">
+                <input asp-for="DireccionEntrega" id="direccion" autocomplete="off" />
+                <button type="button" class="btn btn-linea" id="btnBuscar">Buscar en el mapa</button>
+            </div>
+            <span asp-validation-for="DireccionEntrega" class="error-campo"></span>
+            <ul id="resultadosGeo" class="resultados-geo" hidden></ul>
+
+            <label asp-for="Referencia"></label>
+            <input asp-for="Referencia" />
+
+            <div class="fila-2">
+                <div><label asp-for="VentanaInicio">Franja desde (opcional)</label><input asp-for="VentanaInicio" type="time" /></div>
+                <div><label asp-for="VentanaFin">Franja hasta (opcional)</label><input asp-for="VentanaFin" type="time" /></div>
+            </div>
+
+            <label asp-for="Observaciones"></label>
+            <textarea asp-for="Observaciones" rows="2"></textarea>
+
+            <input type="hidden" asp-for="Lat" id="lat" />
+            <input type="hidden" asp-for="Lng" id="lng" />
+        </div>
+
+        <div class="tarjeta">
+            <div class="tarjeta-cab"><h2>Ubicación</h2><span id="estadoPunto" class="nota"></span></div>
+            <div id="mapaPedido" class="mapa mapa-medio"></div>
+            <p class="nota">Arrastre el marcador o haga clic en el mapa para ajustar el punto exacto de entrega. <span id="zonaDetectada"></span></p>
+        </div>
+    </div>
+
+    <div class="tarjeta formulario">
+        <div class="tarjeta-cab"><h2>Detalle del pedido</h2>
+            <button type="button" class="btn btn-linea btn-peq" id="btnAgregarItem">+ Agregar producto</button></div>
+        <table class="tabla" id="tablaItems">
+            <thead><tr><th>Producto</th><th style="width:110px">Cantidad</th><th>Observación</th><th style="width:44px"></th></tr></thead>
+            <tbody>
+            @for (int i = 0; i < Model.Detalles.Count; i++)
+            {
+                <tr>
+                    <td><input name="Detalles[@i].Producto" value="@Model.Detalles[i].Producto" maxlength="200" /></td>
+                    <td><input name="Detalles[@i].Cantidad" type="number" min="1" value="@Model.Detalles[i].Cantidad" /></td>
+                    <td><input name="Detalles[@i].Observacion" value="@Model.Detalles[i].Observacion" maxlength="250" /></td>
+                    <td><button type="button" class="btn-icono quitar" title="Quitar" aria-label="Quitar">✕</button></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="barra-acciones">
+        <a class="btn btn-linea" asp-action="Index">Cancelar</a>
+        <button type="submit" class="btn btn-primario">@(edita ? "Guardar cambios" : "Registrar pedido")</button>
+    </div>
+</form>
+
+@section Scripts {
+    <script src="~/js/pedido-form.js" asp-append-version="true"></script>
+}

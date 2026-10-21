@@ -1,0 +1,35 @@
+@model List<RepartidorFilaVm>
+@{
+    ViewData["Title"] = "Repartidores";
+    bool admin = User.IsInRole(Roles.Administrador);
+}
+<div class="cabecera">
+    <div><h1>Repartidores</h1><p class="sub">Disponibilidad, carga y última posición conocida.</p></div>
+    @if (admin) { <div class="acciones"><a class="btn btn-primario" asp-controller="Usuarios" asp-action="Crear">+ Nuevo repartidor</a></div> }
+</div>
+<div class="tarjeta">
+    <div class="tabla-resp">
+    <table class="tabla">
+        <thead><tr><th>Repartidor</th><th>Zona</th><th>Vehículo</th><th class="num">Carga</th><th>Disponible</th><th>Última posición</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var r in Model)
+        {
+            <tr class="@(r.Activo ? "" : "apagado")">
+                <td><strong>@r.Nombre</strong><br /><small class="suave">@r.Telefono</small></td>
+                <td>@(r.Zona ?? "—")</td>
+                <td>@r.Vehiculo @r.Placa</td>
+                <td class="num">@r.Carga / @r.Capacidad</td>
+                <td><span class="etiqueta @(r.Disponible ? "e-ok" : "e-pendiente")">@(r.Disponible ? "Disponible" : "No disponible")</span></td>
+                <td>@(r.UltimaActualizacion.HasValue ? r.UltimaActualizacion.Fmt() : "—")</td>
+                <td class="der">
+                    <form class="en-linea" asp-action="CambiarDisponibilidad" asp-route-id="@r.Id" method="post">
+                        <button class="btn btn-linea btn-peq" type="submit">@(r.Disponible ? "Marcar no disponible" : "Marcar disponible")</button>
+                    </form>
+                    @if (admin) { <a class="btn btn-linea btn-peq" asp-action="Editar" asp-route-id="@r.Id">Editar</a> }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    </div>
+</div>

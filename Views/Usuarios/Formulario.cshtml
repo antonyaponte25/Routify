@@ -1,0 +1,49 @@
+@model UsuarioFormVm
+@{
+    bool edita = Model.Id.HasValue;
+    ViewData["Title"] = edita ? "Editar usuario" : "Nuevo usuario";
+}
+<div class="cabecera"><h1>@ViewData["Title"]</h1></div>
+<form class="tarjeta formulario estrecho" asp-action="@(edita ? "Editar" : "Crear")" asp-route-id="@Model.Id" method="post" novalidate>
+    <div asp-validation-summary="All" class="aviso aviso-error"></div>
+    <div class="fila-2">
+        <div><label asp-for="Nombre"></label><input asp-for="Nombre" /><span asp-validation-for="Nombre" class="error-campo"></span></div>
+        <div><label asp-for="Apellido"></label><input asp-for="Apellido" /><span asp-validation-for="Apellido" class="error-campo"></span></div>
+    </div>
+    <label asp-for="Correo"></label>
+    <input asp-for="Correo" type="email" />
+    <span asp-validation-for="Correo" class="error-campo"></span>
+    <label asp-for="Telefono"></label>
+    <input asp-for="Telefono" inputmode="tel" />
+    <label asp-for="RolId"></label>
+    <select asp-for="RolId" asp-items="Model.Roles" id="selRol"><option value="">— Seleccione —</option></select>
+    <span asp-validation-for="RolId" class="error-campo"></span>
+    <label asp-for="Clave">@(edita ? "Nueva contraseña (dejar vacío para no cambiarla)" : "Contraseña")</label>
+    <input asp-for="Clave" type="password" autocomplete="new-password" />
+
+    <fieldset id="datosRepartidor" hidden>
+        <legend>Datos del repartidor</legend>
+        <label asp-for="ZonaId">Zona asignada</label>
+        <select asp-for="ZonaId" asp-items="Model.Zonas"><option value="">Sin zona fija</option></select>
+        <div class="fila-2">
+            <div><label asp-for="Capacidad">Capacidad (paradas)</label><input asp-for="Capacidad" type="number" min="1" max="200" /></div>
+            <div><label asp-for="Vehiculo"></label><input asp-for="Vehiculo" /></div>
+        </div>
+        <label asp-for="Placa"></label>
+        <input asp-for="Placa" />
+    </fieldset>
+
+    <div class="barra-acciones">
+        <a class="btn btn-linea" asp-action="Index">Cancelar</a>
+        <button type="submit" class="btn btn-primario">Guardar</button>
+    </div>
+</form>
+@section Scripts {
+    <script>
+        (function () {
+            var rol = document.getElementById('selRol'), caja = document.getElementById('datosRepartidor');
+            function mostrar() { caja.hidden = rol.value !== '3'; }
+            rol.addEventListener('change', mostrar); mostrar();
+        })();
+    </script>
+}

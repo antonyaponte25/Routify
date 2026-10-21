@@ -1,0 +1,35 @@
+@model List<RutaFilaVm>
+@{
+    ViewData["Title"] = "Rutas";
+    DateTime fecha = (DateTime)ViewBag.Fecha;
+}
+<div class="cabecera">
+    <div><h1>Rutas</h1><p class="sub">Rutas del @fecha.ToString("dd/MM/yyyy")</p></div>
+    <form class="filtros" method="get">
+        <input type="date" name="fecha" value="@fecha.ToString("yyyy-MM-dd")" />
+        <button class="btn btn-linea" type="submit">Ver</button>
+    </form>
+</div>
+<div class="tarjeta">
+    <table class="tabla">
+        <thead><tr><th>#</th><th>Repartidor</th><th>Estado</th><th class="num">Paradas</th><th class="num">Distancia</th><th class="num">Tiempo</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var r in Model)
+        {
+            <tr>
+                <td>@r.Id</td>
+                <td><strong>@r.Repartidor</strong></td>
+                <td><span class="etiqueta @Vista.ClaseRuta(r.Estado)">@r.Estado</span></td>
+                <td class="num">@r.Entregadas / @r.Paradas</td>
+                <td class="num">@(r.DistanciaKm.HasValue ? r.DistanciaKm.Value.ToString("0.0") + " km" : "—")</td>
+                <td class="num">@(r.TiempoMin.HasValue ? r.TiempoMin + " min" : "—")</td>
+                <td class="der"><a class="btn btn-linea btn-peq" asp-action="Detalle" asp-route-id="@r.Id">Ver ruta</a></td>
+            </tr>
+        }
+        @if (!Model.Any())
+        {
+            <tr><td colspan="7" class="vacio">No hay rutas para esta fecha.</td></tr>
+        }
+        </tbody>
+    </table>
+</div>

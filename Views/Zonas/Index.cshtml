@@ -1,0 +1,35 @@
+@model List<ZonaReparto>
+@{
+    ViewData["Title"] = "Zonas de reparto";
+    var conteos = (Dictionary<int, int>)ViewBag.Conteos;
+    bool admin = User.IsInRole(Roles.Administrador);
+}
+<div class="cabecera">
+    <div><h1>Zonas de reparto</h1><p class="sub">Polígonos sobre el mapa; cada pedido se asigna a la zona que contiene su punto de entrega.</p></div>
+    @if (admin) { <div class="acciones"><a class="btn btn-primario" asp-action="Crear">+ Nueva zona</a></div> }
+</div>
+<div class="tarjeta">
+    <table class="tabla">
+        <thead><tr><th>Zona</th><th>Descripción</th><th class="num">Pedidos</th><th>Estado</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var z in Model)
+        {
+            <tr>
+                <td><span class="muestra" style="background:@z.Color"></span> <strong>@z.Nombre</strong></td>
+                <td>@z.Descripcion</td>
+                <td class="num">@(conteos.TryGetValue(z.Id, out var n) ? n : 0)</td>
+                <td><span class="etiqueta @(z.Activa ? "e-ok" : "e-pendiente")">@(z.Activa ? "Activa" : "Inactiva")</span></td>
+                <td class="der">
+                    @if (admin)
+                    {
+                        <a class="btn btn-linea btn-peq" asp-action="Editar" asp-route-id="@z.Id">Editar</a>
+                        <form class="en-linea" asp-action="CambiarEstado" asp-route-id="@z.Id" method="post">
+                            <button class="btn btn-linea btn-peq" type="submit">@(z.Activa ? "Desactivar" : "Activar")</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

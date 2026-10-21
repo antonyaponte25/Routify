@@ -1,0 +1,71 @@
+@{
+    string titulo = ViewData["Title"] as string ?? "Routify";
+    string ctrl = (ViewContext.RouteData.Values["controller"] as string) ?? "";
+    bool esAdmin = User.IsInRole(Roles.Administrador);
+    string Activo(params string[] cs) => cs.Contains(ctrl) ? "activo" : "";
+    string nombre = User.Identity?.Name ?? "";
+    string rol = User.IsInRole(Roles.Administrador) ? "Administrador" : User.IsInRole(Roles.Operador) ? "Operador" : "Repartidor";
+    string iniciales = string.Concat(nombre.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(s => char.ToUpperInvariant(s[0])));
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@titulo · Routify</title>
+    <link rel="icon" href="~/icons/icon-192.png" />
+    <link rel="stylesheet" href="~/lib/leaflet/leaflet.css" />
+    <link rel="stylesheet" href="~/css/routify.css" asp-append-version="true" />
+    @await RenderSectionAsync("Estilos", required: false)
+</head>
+<body class="app">
+    <aside class="lateral" id="lateral">
+        <a class="marca" asp-controller="Home" asp-action="Index"><span class="marca-logo">R</span> Routify</a>
+        <nav>
+            <a class="@Activo("Home")" asp-controller="Home" asp-action="Index">Panel de despacho</a>
+            <a class="@Activo("Pedidos")" asp-controller="Pedidos" asp-action="Index">Pedidos</a>
+            <a class="@Activo("Rutas")" asp-controller="Rutas" asp-action="Index">Rutas</a>
+            <a class="@Activo("Clientes")" asp-controller="Clientes" asp-action="Index">Clientes</a>
+            <a class="@Activo("Repartidores")" asp-controller="Repartidores" asp-action="Index">Repartidores</a>
+            <a class="@Activo("Zonas")" asp-controller="Zonas" asp-action="Index">Zonas de reparto</a>
+            @if (esAdmin)
+            {
+                <a class="@Activo("Usuarios")" asp-controller="Usuarios" asp-action="Index">Usuarios</a>
+            }
+        </nav>
+        <div class="lateral-pie">
+            <div class="usuario">
+                <span class="avatar">@iniciales</span>
+                <div><strong>@nombre</strong><small>@rol</small></div>
+            </div>
+            <a class="enlace-suave" asp-controller="Account" asp-action="CambiarClave">Cambiar contraseña</a>
+            <form asp-controller="Account" asp-action="Logout" method="post">
+                <button type="submit" class="btn btn-linea btn-bloque">Cerrar sesión</button>
+            </form>
+        </div>
+    </aside>
+
+    <div class="principal">
+        <header class="barra-movil">
+            <button type="button" class="btn-menu" id="btnMenu" aria-label="Menú">☰</button>
+            <span class="marca-logo">R</span> Routify
+        </header>
+        <main class="contenido">
+            @if (TempData["ok"] is string ok)
+            {
+                <div class="aviso aviso-ok" role="status">@ok</div>
+            }
+            @if (TempData["error"] is string err)
+            {
+                <div class="aviso aviso-error" role="alert">@err</div>
+            }
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/lib/leaflet/leaflet.js"></script>
+    <script src="~/lib/signalr/signalr.min.js"></script>
+    <script src="~/js/routify.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

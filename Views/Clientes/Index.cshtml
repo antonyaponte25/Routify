@@ -1,0 +1,43 @@
+@model List<Cliente>
+@{ ViewData["Title"] = "Clientes"; }
+<div class="cabecera">
+    <div><h1>Clientes</h1><p class="sub">Los clientes no tienen cuenta: siguen su pedido mediante un enlace único.</p></div>
+    <div class="acciones"><a class="btn btn-primario" asp-action="Crear">+ Nuevo cliente</a></div>
+</div>
+<form class="filtros" method="get">
+    <input type="search" name="texto" value="@ViewBag.Texto" placeholder="Buscar por nombre, teléfono o dirección" />
+    <button class="btn btn-linea" type="submit">Buscar</button>
+</form>
+<div class="tarjeta">
+    <div class="tabla-resp">
+    <table class="tabla">
+        <thead><tr><th>Nombre</th><th>Contacto</th><th>Dirección</th><th>Notificaciones</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var c in Model)
+        {
+            <tr>
+                <td><strong>@c.Nombre</strong></td>
+                <td>@(c.Telefono ?? "—")<br /><small class="suave">@c.Correo</small></td>
+                <td>@c.Direccion @if (c.Ubicacion == null) { <span class="etiqueta e-pendiente">sin punto</span> }</td>
+                <td>
+                    @if (!c.ConsentimientoDatos) { <span class="etiqueta e-fallo">sin consentimiento</span> }
+                    else
+                    {
+                        if (c.NotificarCorreo) { <span class="etiqueta e-prep">Correo</span> }
+                        if (c.NotificarWhatsapp) { <span class="etiqueta e-ok">WhatsApp</span> }
+                    }
+                </td>
+                <td class="der">
+                    <a class="btn btn-linea btn-peq" asp-controller="Pedidos" asp-action="Crear" asp-route-clienteId="@c.Id">Nuevo pedido</a>
+                    <a class="btn btn-linea btn-peq" asp-action="Editar" asp-route-id="@c.Id">Editar</a>
+                </td>
+            </tr>
+        }
+        @if (!Model.Any())
+        {
+            <tr><td colspan="5" class="vacio">No hay clientes que coincidan.</td></tr>
+        }
+        </tbody>
+    </table>
+    </div>
+</div>

@@ -1,0 +1,22 @@
+@{
+    string titulo = ViewData["Title"] as string ?? "Routify";
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>@titulo · Routify</title>
+    <link rel="icon" href="~/icons/icon-192.png" />
+    <link rel="stylesheet" href="~/lib/leaflet/leaflet.css" />
+    <link rel="stylesheet" href="~/css/routify.css" asp-append-version="true" />
+    @await RenderSectionAsync("Estilos", required: false)
+</head>
+<body class="publico">
+    @RenderBody()
+    <script src="~/lib/leaflet/leaflet.js"></script>
+    <script src="~/lib/signalr/signalr.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

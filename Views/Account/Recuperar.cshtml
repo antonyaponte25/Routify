@@ -1,0 +1,27 @@
+@model RecuperarVm
+@{
+    ViewData["Title"] = "Recuperar contraseña";
+    Layout = "_LayoutPublico";
+}
+<div class="tarjeta-centro">
+    <h1>Recuperar contraseña</h1>
+    @if (ViewBag.Enviado == true)
+    {
+        <div class="aviso aviso-ok">Si el correo está registrado, recibirá un enlace para restablecer su contraseña (vigente 30 minutos).</div>
+        @if (ViewBag.EnlaceDesarrollo is string enlace)
+        {
+            <p class="nota">Modo desarrollo — enlace: <a href="@enlace">@enlace</a></p>
+        }
+        <a class="btn btn-linea" asp-action="Login">Volver al inicio de sesión</a>
+    }
+    else
+    {
+        <form asp-action="Recuperar" method="post" novalidate>
+            <label asp-for="Correo"></label>
+            <input asp-for="Correo" autofocus />
+            <span asp-validation-for="Correo" class="error-campo"></span>
+            <button type="submit" class="btn btn-primario btn-bloque">Enviar enlace</button>
+            <p class="centro"><a asp-action="Login">Volver</a></p>
+        </form>
+    }
+</div>

@@ -1,0 +1,24 @@
+@model LoginVm
+@{
+    ViewData["Title"] = "Iniciar sesión";
+    Layout = "_LayoutPublico";
+}
+<div class="login">
+    <div class="login-panel">
+        <div class="marca-grande"><span class="marca-logo">R</span> Routify</div>
+        <p class="login-lema">Planifique, asigne y siga cada entrega en tiempo real.</p>
+    </div>
+    <form class="login-form" asp-action="Login" method="post" novalidate>
+        <h1>Iniciar sesión</h1>
+        <div asp-validation-summary="ModelOnly" class="aviso aviso-error"></div>
+        <input type="hidden" asp-for="ReturnUrl" />
+        <label asp-for="Correo"></label>
+        <input asp-for="Correo" autocomplete="username" autofocus />
+        <span asp-validation-for="Correo" class="error-campo"></span>
+        <label asp-for="Clave"></label>
+        <input asp-for="Clave" autocomplete="current-password" />
+        <span asp-validation-for="Clave" class="error-campo"></span>
+        <button type="submit" class="btn btn-primario btn-bloque">Ingresar</button>
+        <p class="centro"><a asp-action="Recuperar">¿Olvidó su contraseña?</a></p>
+    </form>
+</div>

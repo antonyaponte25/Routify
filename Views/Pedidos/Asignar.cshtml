@@ -1,0 +1,43 @@
+@model AsignacionVm
+@{
+    var p = Model.Pedido;
+    ViewData["Title"] = "Asignar " + p.Codigo;
+}
+<div class="cabecera">
+    <div><h1>Asignar repartidor · @p.Codigo</h1>
+    <p class="sub">@p.Cliente.Nombre · @p.DireccionEntrega @(p.Zona != null ? "· Zona " + p.Zona.Nombre : "")</p></div>
+    <div class="acciones"><a class="btn btn-linea" asp-action="Detalle" asp-route-id="@p.Id">Volver</a></div>
+</div>
+
+<div class="tarjeta">
+    <p class="nota">Ordenados por cercanía al punto de recogida (@Model.AlmacenNombre). La ruta y el ETA muestran el impacto estimado de agregar este pedido a la ruta del repartidor.</p>
+    <div class="tabla-resp">
+    <table class="tabla">
+        <thead><tr><th>Repartidor</th><th>Zona</th><th class="num">Carga</th><th class="num">Hasta recogida</th><th class="num">Hasta entrega</th><th class="num">Ruta total</th><th>ETA</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var c in Model.Candidatos)
+        {
+            <tr class="@(c.Disponible ? "" : "apagado")">
+                <td><strong>@c.Nombre</strong><br /><small class="suave">@c.Vehiculo</small></td>
+                <td>@(c.Zona ?? "—") @if (c.MismaZona) { <span class="etiqueta e-ok">misma zona</span> }</td>
+                <td class="num">@c.ParadasAsignadas / @c.Capacidad</td>
+                <td class="num">@(c.DistanciaRecogidaKm.HasValue ? c.DistanciaRecogidaKm.Value.ToString("0.0") + " km" : "—")</td>
+                <td class="num">@(c.DistanciaEntregaKm.HasValue ? c.DistanciaEntregaKm.Value.ToString("0.0") + " km" : "—")</td>
+                <td class="num">@(c.RutaKm.HasValue ? c.RutaKm.Value.ToString("0.0") + " km · " + c.RutaMin + " min" : "—")</td>
+                <td>@(c.EtaUtc.HasValue ? c.EtaUtc.Hora() : "—")</td>
+                <td>
+                    @if (c.Disponible)
+                    {
+                        <form asp-action="Asignar" asp-route-id="@p.Id" method="post">
+                            <input type="hidden" name="repartidorId" value="@c.RepartidorId" />
+                            <button class="btn btn-primario btn-peq" type="submit">Asignar</button>
+                        </form>
+                    }
+                    else { <small class="suave">No disponible</small> }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    </div>
+</div>

@@ -1,0 +1,87 @@
+@model DashboardVm
+@using Routify.Web.Services.Indicadores
+@{
+    ViewData["Title"] = "Panel de despacho";
+    var k = Model.Kpis;
+}
+<div class="cabecera">
+    <div>
+        <h1>Panel de despacho</h1>
+        <p class="sub">Jornada de hoy · hora de Lima <span id="indConexion" class="punto punto-off" title="Tiempo real"></span></p>
+    </div>
+    <div class="acciones">
+        <a class="btn btn-primario" asp-controller="Pedidos" asp-action="Crear">+ Nuevo pedido</a>
+    </div>
+</div>
+
+<section class="kpis">
+    <div class="kpi"><span>Pedidos de hoy</span><strong>@k.PedidosHoy</strong><small>@Vista.Variacion(k.PedidosHoy, k.PedidosAyer)</small></div>
+    <div class="kpi"><span>En ruta</span><strong>@k.EnRuta</strong><small>repartos en curso</small></div>
+    <div class="kpi"><span>Entregas de hoy</span><strong>@k.EntregasHoy</strong><small>@Vista.Variacion(k.EntregasHoy, k.EntregasAyer)</small></div>
+    <div class="kpi @(k.PorAsignar > 0 ? "kpi-alerta" : "")"><span>Por asignar</span><strong>@k.PorAsignar</strong>
+        <small><a asp-controller="Pedidos" asp-action="Index" asp-route-EstadoId="1">ver pendientes</a></small></div>
+    <div class="kpi"><span>Precisión del ETA</span>
+        <strong>@(k.PrecisionEta.HasValue ? k.PrecisionEta.Value.ToString("0") + " %" : "—")</strong>
+        <small>@(k.MuestrasEta > 0 ? $"±{k.ToleranciaEtaMin} min · {k.MuestrasEta} entregas" : "sin datos aún")</small></div>
+</section>
+
+<section class="rejilla-despacho">
+    <div class="tarjeta mapa-tarjeta">
+        <div class="tarjeta-cab">
+            <h2>Mapa en vivo</h2>
+            <div class="leyenda" id="leyendaRep"></div>
+        </div>
+        <div id="mapaDespacho" class="mapa mapa-alto"></div>
+    </div>
+
+    <div class="tarjeta">
+        <div class="tarjeta-cab">
+            <h2>Pedidos activos</h2>
+            <form asp-controller="Pedidos" asp-action="AutoDistribuir" method="post"
+                  onsubmit="return confirm('¿Distribuir automáticamente los pedidos pendientes entre los repartidores disponibles?');">
+                <button class="btn btn-linea btn-peq" type="submit">Distribuir pendientes</button>
+            </form>
+        </div>
+        <div class="lista-scroll">
+            <table class="tabla" id="tablaActivos">
+                <thead><tr><th>Pedido</th><th>Cliente</th><th>Estado</th><th>Repartidor</th></tr></thead>
+                <tbody>
+                @foreach (var p in Model.Activos)
+                {
+                    <tr data-pedido="@p.Id">
+                        <td><a asp-controller="Pedidos" asp-action="Detalle" asp-route-id="@p.Id">@p.Codigo</a></td>
+                        <td>@p.Cliente<br /><small class="suave">@p.Direccion</small></td>
+                        <td><span class="etiqueta @Vista.ClaseEstado(p.EstadoId)" data-estado>@p.Estado</span></td>
+                        <td>@(p.Repartidor ?? "—")</td>
+                    </tr>
+                }
+                @if (!Model.Activos.Any())
+                {
+                    <tr><td colspan="4" class="vacio">No hay pedidos activos.</td></tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<section class="tarjeta">
+    <div class="tarjeta-cab"><h2>Rendimiento por repartidor (hoy)</h2></div>
+    <table class="tabla">
+        <thead><tr><th>Repartidor</th><th class="num">Entregadas</th><th class="num">Fallidas</th><th class="num">Pendientes</th></tr></thead>
+        <tbody>
+        @foreach (var r in k.PorRepartidor)
+        {
+            <tr><td>@r.Nombre</td><td class="num">@r.Entregadas</td><td class="num">@r.Fallidas</td><td class="num">@r.Pendientes</td></tr>
+        }
+        @if (!k.PorRepartidor.Any())
+        {
+            <tr><td colspan="4" class="vacio">Sin actividad registrada hoy.</td></tr>
+        }
+        </tbody>
+    </table>
+</section>
+
+@section Scripts {
+    <script src="~/js/despacho.js" asp-append-version="true"></script>
+}

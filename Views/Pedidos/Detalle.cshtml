@@ -1,0 +1,158 @@
+@model PedidoDetalleVm
+@{
+    var p = Model.Pedido;
+    ViewData["Title"] = "Pedido " + p.Codigo;
+    bool pendiente = p.EstadoId == EstadoPedidoIds.Pendiente;
+    bool prep = p.EstadoId == EstadoPedidoIds.EnPreparacion;
+    bool editable = pendiente || prep;
+}
+<div class="cabecera">
+    <div>
+        <h1>@p.Codigo <span class="etiqueta @Vista.ClaseEstado(p.EstadoId)">@p.Estado.Nombre</span></h1>
+        <p class="sub">Registrado el @p.FechaRegistro.Fmt() · Última actualización @p.FechaActualizacion.Fmt()</p>
+    </div>
+    <div class="acciones">
+        @if (pendiente && p.Ubicacion != null)
+        {
+            <a class="btn btn-primario" asp-action="Asignar" asp-route-id="@p.Id">Asignar repartidor</a>
+            <form asp-action="AutoAsignar" asp-route-id="@p.Id" method="post"><button class="btn btn-linea" type="submit">Asignar automáticamente</button></form>
+        }
+        @if (prep)
+        {
+            <form asp-action="Desasignar" asp-route-id="@p.Id" method="post"
+                  onsubmit="return confirm('¿Quitar el repartidor de este pedido?');"><button class="btn btn-linea" type="submit">Desasignar</button></form>
+        }
+        @if (p.EstadoId == EstadoPedidoIds.Fallido)
+        {
+            <form asp-action="Reprogramar" asp-route-id="@p.Id" method="post"><button class="btn btn-primario" type="submit">Reprogramar</button></form>
+        }
+        @if (editable)
+        {
+            <a class="btn btn-linea" asp-action="Editar" asp-route-id="@p.Id">Editar</a>
+        }
+    </div>
+</div>
+
+<div class="dos-col">
+    <div class="tarjeta">
+        <h2>Cliente y entrega</h2>
+        <dl class="datos">
+            <dt>Cliente</dt><dd>@p.Cliente.Nombre</dd>
+            <dt>Teléfono</dt><dd>@(p.Cliente.Telefono ?? "—")</dd>
+            <dt>Correo</dt><dd>@(p.Cliente.Correo ?? "—")</dd>
+            <dt>Dirección</dt><dd>@p.DireccionEntrega</dd>
+            <dt>Referencia</dt><dd>@(p.Referencia ?? "—")</dd>
+            <dt>Zona</dt><dd>@(p.Zona?.Nombre ?? "—")</dd>
+            <dt>Franja horaria</dt><dd>@(p.VentanaInicio.HasValue || p.VentanaFin.HasValue ? $"{p.VentanaInicio?.ToString("HH:mm") ?? "—"} – {p.VentanaFin?.ToString("HH:mm") ?? "—"}" : "Sin franja")</dd>
+            <dt>Repartidor</dt><dd>@(p.Repartidor?.Usuario.NombreCompleto ?? "Sin asignar")</dd>
+            @if (Model.Parada?.Eta != null && (p.EstadoId == EstadoPedidoIds.EnPreparacion || p.EstadoId == EstadoPedidoIds.EnRuta))
+            {
+                <dt>Llegada estimada</dt><dd><strong>@Model.Parada.Eta.Hora()</strong></dd>
+            }
+            <dt>Observaciones</dt><dd>@(p.Observaciones ?? "—")</dd>
+        </dl>
+
+        <h2>Productos</h2>
+        <table class="tabla">
+            <thead><tr><th>Producto</th><th class="num">Cant.</th><th>Observación</th></tr></thead>
+            <tbody>
+            @foreach (var d in p.Detalles)
+            {
+                <tr><td>@d.Producto</td><td class="num">@d.Cantidad</td><td>@(d.Observacion ?? "")</td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="tarjeta">
+        <h2>Ubicación</h2>
+        @if (p.Ubicacion != null)
+        {
+            <div id="mapaDetalle" class="mapa mapa-medio"
+                 data-lat="@p.Ubicacion.Y.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                 data-lng="@p.Ubicacion.X.ToString(System.Globalization.CultureInfo.InvariantCulture)"></div>
+        }
+        else
+        {
+            <p class="vacio">Este pedido aún no tiene punto en el mapa. <a asp-action="Editar" asp-route-id="@p.Id">Fijarlo ahora</a>.</p>
+        }
+
+        @if (Model.UrlSeguimiento != null)
+        {
+            <h2>Enlace de seguimiento</h2>
+            <div class="con-boton">
+                <input type="text" readonly value="@Model.UrlSeguimiento" id="urlSeg" />
+                <button type="button" class="btn btn-linea" data-copiar="#urlSeg">Copiar</button>
+            </div>
+            @if (Model.EnlaceWhatsApp != null)
+            {
+                <p><a class="btn btn-linea" target="_blank" rel="noopener" href="@Model.EnlaceWhatsApp">Enviar por WhatsApp (wa.me)</a></p>
+            }
+        }
+    </div>
+</div>
+
+@if (Model.Pruebas.Any())
+{
+    <div class="tarjeta">
+        <h2>Pruebas de entrega</h2>
+        <div class="galeria">
+            @foreach (var pr in Model.Pruebas)
+            {
+                <figure>
+                    <a href="/pruebas/@pr.Id" target="_blank" rel="noopener"><img src="/pruebas/@pr.Id" alt="@pr.Tipo" loading="lazy" /></a>
+                    <figcaption>@pr.Tipo · @pr.FechaRegistro.Fmt()@(string.IsNullOrWhiteSpace(pr.Observacion) ? "" : " · " + pr.Observacion)</figcaption>
+                </figure>
+            }
+        </div>
+    </div>
+}
+
+<div class="dos-col">
+    <div class="tarjeta">
+        <h2>Historial de estados</h2>
+        <ol class="linea-tiempo">
+            @foreach (var h in Model.Historial)
+            {
+                <li>
+                    <strong>@h.EstadoNuevo.Nombre</strong>
+                    <span>@h.Fecha.Fmt()@(h.Usuario != null ? " · " + h.Usuario.NombreCompleto : "")</span>
+                    @if (!string.IsNullOrWhiteSpace(h.Comentario)) { <em>@h.Comentario</em> }
+                </li>
+            }
+        </ol>
+    </div>
+
+    <div class="tarjeta">
+        <h2>Notificaciones al cliente</h2>
+        <table class="tabla">
+            <thead><tr><th>Evento</th><th>Canal</th><th>Estado</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var n in Model.Notificaciones)
+            {
+                <tr>
+                    <td>@n.Evento<br /><small class="suave">@n.FechaCreacion.Fmt()</small></td>
+                    <td>@n.Canal<br /><small class="suave">@n.Destino</small></td>
+                    <td><span class="etiqueta @Vista.ClaseNotificacion(n.Estado)" title="@n.Error">@n.Estado</span></td>
+                    <td>
+                        @if (n.Estado == EstadoNotificacion.Fallida)
+                        {
+                            <form asp-action="ReenviarNotificacion" asp-route-id="@p.Id" asp-route-notificacionId="@n.Id" method="post">
+                                <button class="btn btn-linea btn-peq" type="submit">Reenviar</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+            @if (!Model.Notificaciones.Any())
+            {
+                <tr><td colspan="4" class="vacio">Aún no se han generado notificaciones.</td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pedido-detalle.js" asp-append-version="true"></script>
+}

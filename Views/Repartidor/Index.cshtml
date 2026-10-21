@@ -1,0 +1,19 @@
+@{
+    Layout = "_LayoutRepartidor";
+}
+<div id="app" data-repartidor="@ViewBag.RepartidorId" data-nombre="@ViewBag.Nombre">
+    <header class="m-cab">
+        <div><strong id="mNombre">@ViewBag.Nombre</strong><small id="mEstadoRed" class="m-red">…</small></div>
+        <form method="post" asp-controller="Account" asp-action="Logout" id="formSalir"><button class="m-salir" type="submit">Salir</button></form>
+    </header>
+    <div id="mAviso" class="m-aviso" hidden></div>
+    <main id="mVista" class="m-vista"><p class="vacio">Cargando…</p></main>
+    <nav class="m-nav">
+        <a href="#/ruta" data-ruta="ruta">Ruta</a>
+        <a href="#/mapa" data-ruta="mapa">Mapa</a>
+        <a href="#/pendientes" data-ruta="pendientes">Sincronizar <span id="mCola" class="cuenta" hidden>0</span></a>
+    </nav>
+</div>
+@section Scripts {
+    <script src="~/js/repartidor-app.js" asp-append-version="true"></script>
+}
